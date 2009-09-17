@@ -1,0 +1,34 @@
+= rails refactor
+
+by Birkir A. Barkarson <birkirb@stoicviking.net>
+
+== Description
+
+A plugin to assist in refactoring your rails application.
+
+== INSTALL
+
+  script/plugin install git://github.com/birkirb/rails-refactor.git
+
+== USAGE
+
+Usage: script/refactor [OPTIONS] [COMMANDS]
+
+COMMANDS:
+  rename [old_class_name] [new_class_name]
+
+OPTIONS:
+    -x, --[no-]execute               Execute supplied commands. Must be supplied to run otherwise it will just show what would have been done.
+    -h, --help                       This help message.
+    -s, --[no-]use-scm               Use SCM support.
+    -m, --[no-]migrations            Generate migrations.
+    -f, --command-file COMMAND_FILE  Read commands from file.
+
+Examples:
+  script/refactor rename parasite user
+
+== Attribution
+
+Originally inspired by Hiroshi Saito's script-refactor
+
+http://github.com/hiroshi/script-refactor

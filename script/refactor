@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+RAILS_ROOT = File.join(File.dirname(__FILE__), '..')
+$LOAD_PATH << 'vendor/plugins/rails-refactor/lib/'
+require 'rails_refactor'

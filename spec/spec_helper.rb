@@ -2,11 +2,12 @@ require 'rubygems'
 require 'spec'
 
 ::RAILS_ROOT = File.join(File.dirname(__FILE__), 'test_app')
-::RAILS_REFACTOR_ROOT = File.join('..', '..')
+::RAILS_REFACTOR_ROOT = FileUtils.pwd
+$LOAD_PATH << File.join(RAILS_REFACTOR_ROOT, 'lib')
 
-require 'lib/commands/rename'
-require 'lib/support/database'
-require 'lib/support/migration_builder'
+require 'commands/rename'
+require 'support/database'
+require 'support/migration_builder'
 
 def do_with_stdout(&block)
   captured_stdout = StringIO.new

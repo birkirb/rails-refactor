@@ -43,11 +43,11 @@ module RailsRefactor
         <<-MIGRATION
 class #{@migration_name} < ActiveRecord::Migration
   def self.up
-#{@up_commands.join('\n')}
+#{@up_commands.join("\n")}
   end
 
   def self.down
-#{@down_commands.join('\n')}
+#{@down_commands.join("\n")}
   end
 end
         MIGRATION

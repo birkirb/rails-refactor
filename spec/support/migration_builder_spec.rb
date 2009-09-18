@@ -31,15 +31,15 @@ describe RailsRefactor::Support::MigrationBuilder do
   it 'should generate rename table migrations when so called' do
     mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
     mb.rename_table('parasites', 'users')
-    mb.to_s.should match(/def self.up\n\s+rename_table\(:parasites, :users\)/)
-    mb.to_s.should match(/def self.down\n\s+rename_table\(:users, :parasites\)/)
+    mb.to_s.should match(/def self.up\n\s+rename_table\(:parasites, :users\)\n/)
+    mb.to_s.should match(/def self.down\n\s+rename_table\(:users, :parasites\)\n/)
   end
 
   it 'should generate rename column migrations when so called' do
     mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
     mb.rename_column('parasites', 'name', 'classification')
-    mb.to_s.should match(/def self.up\n\s+rename_column\(:parasites, :name, :classification\)/)
-    mb.to_s.should match(/def self.down\n\s+rename_column\(:parasites, :classification, :name\)/)
+    mb.to_s.should match(/def self.up\n\s+rename_column\(:parasites, :name, :classification\)\n/)
+    mb.to_s.should match(/def self.down\n\s+rename_column\(:parasites, :classification, :name\)\n/)
   end
 
   it 'should save the migration to the rails db/migrate directory' do

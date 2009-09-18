@@ -16,4 +16,9 @@ describe RailsRefactor::Support::Database do
     database.table_columns(:test).should == []
     database.table_columns(:parasites).should == ['id', 'name', 'created_at', 'updated_at']
   end
+
+  it 'should give an array of table names in the database' do
+    database = RailsRefactor::Support::Database.new
+    database.tables.should == ['schema_migrations', 'parasites']
+  end
 end

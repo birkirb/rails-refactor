@@ -9,6 +9,10 @@ module RailsRefactor
         ActiveRecord::Base.establish_connection
       end
 
+      def tables
+        ActiveRecord::Base.connection.tables
+      end
+
       def table_exists?(table_name)
         ActiveRecord::Base.connection.table_exists?(table_name)
       end

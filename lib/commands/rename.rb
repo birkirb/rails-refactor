@@ -32,9 +32,7 @@ module RailsRefactor
         rename_files
         rename_constants_and_variables
 
-        if @migrate
-          rename_tables
-        end
+        build_migration if @migrate
       end
 
       private
@@ -100,11 +98,14 @@ module RailsRefactor
         end
       end
 
-      def rename_tables
+      def build_migration
         if @db.table_exists?(@from_plural)
           migration_name = "Rename#{remove_namespace_seperator(@from_singular.classify.pluralize)}To#{remove_namespace_seperator(@to_plural.classify.pluralize)}"
           @migration_builder = Support::MigrationBuilder.new(migration_name)
-          @migration_builder.rename_table(@from_plural, @to_plural)
+
+          rename_columns
+          rename_table
+
           if @execute
             @migration_builder.save
           else
@@ -115,8 +116,19 @@ module RailsRefactor
         end
       end
 
+      def rename_table
+        @migration_builder.rename_table(@from_plural, @to_plural)
+      end
+
       def rename_columns
-        # TODO
+        from_column_name = "#{@from_singular}_id"
+        to_column_name = "#{@to_singular}_id"
+
+        @db.tables.each do |table|
+          if @db.table_columns(table).include?(from_column_name)
+            @migration_builder.rename_column(table, from_column_name, to_column_name)
+          end
+        end
       end
 
       def do_with_found_files

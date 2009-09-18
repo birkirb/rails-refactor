@@ -21,6 +21,12 @@ module RailsRefactor
         @down_commands << "    rename_table(:#{new_table_name}, :#{old_table_name})"
       end
 
+      def rename_column(table, from, to)
+        table = table_name(table)
+        @up_commands << "    rename_column(:#{table}, :#{from}, :#{to})"
+        @down_commands << "    rename_column(:#{table}, :#{to}, :#{from})"
+      end
+
       def save
         open(@file_name, "w") do |out|
           out.print migration_contents

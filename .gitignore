@@ -1,0 +1,2 @@
+coverage*
+spec/test_app/log/*

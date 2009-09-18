@@ -33,5 +33,5 @@ def do_with_stdout(&block)
     end
   end
 
-  [captured_stderr.to_s, captured_stdout.to_s]
+  [captured_stdout.string, captured_stderr.string]
 end

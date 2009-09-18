@@ -30,6 +30,12 @@ describe RailsRefactor::Commands::Rename do
     end
   end
 
+  it 'should generate a migration for existing tables' do
+    rename = RailsRefactor::Commands::Rename.new(:migrate => true)
+    stdout, stderr = do_with_stdout { rename.run('parasites', 'users') }
+    stdout.should match(/class RenameParasitesToUsers < ActiveRecord::Migration/)
+  end
+
   after(:all) do
     FileUtils.cd(RAILS_REFACTOR_ROOT)
   end

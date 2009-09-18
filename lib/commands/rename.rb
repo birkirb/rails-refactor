@@ -9,7 +9,7 @@ module RailsRefactor
     class Rename
 
       IGNORE_DIRECTORIES = ['vendor', 'log', 'tmp', 'db']
-      IGNORE_FILE_TYPES =  ['bin', 'git', 'svn', 'sh', 'swp', 'sql']
+      IGNORE_FILE_TYPES =  ['bin', 'git', 'svn', 'sh', 'swp', 'sql', 'rake']
       FIND_PRUNE_REGEXP = Regexp.new(/((^\.\/(#{IGNORE_DIRECTORIES.join('|')}))|\.(#{IGNORE_FILE_TYPES.join('|')}))$/)
 
       def initialize(options = {})

@@ -4,6 +4,8 @@ module RailsRefactor
   module Support
     class MigrationBuilder
 
+      @@rename_map = Hash.new
+
       attr_accessor :file_name
 
       def initialize(migration_name)
@@ -19,10 +21,11 @@ module RailsRefactor
         new_table_name = table_name(to)
         @up_commands << "    rename_table(:#{old_table_name}, :#{new_table_name})"
         @down_commands << "    rename_table(:#{new_table_name}, :#{old_table_name})"
+        @@rename_map[old_table_name] = new_table_name
       end
 
       def rename_column(table, from, to)
-        table = table_name(table)
+        table = renamed_table_name(table)
         @up_commands << "    rename_column(:#{table}, :#{from}, :#{to})"
         @down_commands << "    rename_column(:#{table}, :#{to}, :#{from})"
       end
@@ -55,6 +58,15 @@ end
 
       def table_name(value)
         value.gsub(/.*::/, '').pluralize
+      end
+
+      def renamed_table_name(name)
+        name = table_name(name)
+        if renamed_name = @@rename_map[name]
+          renamed_name
+        else
+          name
+        end
       end
 
     end

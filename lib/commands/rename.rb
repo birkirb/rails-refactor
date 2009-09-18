@@ -2,6 +2,7 @@ require 'find'
 require 'rubygems'
 require 'active_support'
 require 'support/migration_builder'
+require 'support/database'
 
 module RailsRefactor
   module Commands
@@ -15,6 +16,7 @@ module RailsRefactor
         @scm = options[:scm]
         @execute = options[:execute]
         @migrate = options[:migrate]
+        @db = Support::Database.new
       end
 
       def run(args)
@@ -98,15 +100,17 @@ module RailsRefactor
       end
 
       def rename_tables
-        migration_name = "Rename#{remove_namespace_seperator(@from_singular.classify.pluralize)}To#{remove_namespace_seperator(@to_plural.classify.pluralize)}"
-        @migration_builder = Support::MigrationBuilder.new(migration_name)
-        @migration_builder.rename_table(@from_plural, @to_plural)
-        if @execute
-          @migration_builder.save
-        else
-          puts "Generated the following migration:"
-          puts @migration_builder.to_s
-          puts ''
+        if @db.table_exists?(@from_singular)
+          migration_name = "Rename#{remove_namespace_seperator(@from_singular.classify.pluralize)}To#{remove_namespace_seperator(@to_plural.classify.pluralize)}"
+          @migration_builder = Support::MigrationBuilder.new(migration_name)
+          @migration_builder.rename_table(@from_plural, @to_plural)
+          if @execute
+            @migration_builder.save
+          else
+            puts "Generated the following migration:"
+            puts @migration_builder.to_s
+            puts ''
+          end
         end
       end
 

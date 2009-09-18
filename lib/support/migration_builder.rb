@@ -4,6 +4,8 @@ module RailsRefactor
   module Support
     class MigrationBuilder
 
+      attr_accessor :file_name
+
       def initialize(migration_name)
         @rails_root = RAILS_ROOT
         @up_commands = Array.new
@@ -26,7 +28,7 @@ module RailsRefactor
       end
 
       def to_s
-        "#{@file_name}\n#{migration_contents}"
+        migration_contents
       end
 
       private

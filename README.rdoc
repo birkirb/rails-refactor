@@ -29,6 +29,6 @@ Examples:
 
 == Attribution
 
-Originally inspired by Hiroshi Saito's script-refactor
+Inspired by Hiroshi Saito's script-refactor
 
 http://github.com/hiroshi/script-refactor

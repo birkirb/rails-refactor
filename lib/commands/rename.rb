@@ -13,7 +13,7 @@ module RailsRefactor
       FIND_PRUNE_REGEXP = Regexp.new(/((^\.\/(#{IGNORE_DIRECTORIES.join('|')}))|\.(#{IGNORE_FILE_TYPES.join('|')}))$/)
 
       def initialize(options = {})
-        @scm = (options[:scm] == true)
+        @scm = options[:scm]
         @execute = (options[:execute] == true)
         @migrate = (options[:migrate] == true)
         @db = Support::Database.new

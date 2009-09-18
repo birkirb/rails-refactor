@@ -1,8 +1,7 @@
 require 'find'
-require 'rubygems'
 require 'active_support'
-require 'support/migration_builder'
-require 'support/database'
+require 'lib/support/migration_builder'
+require 'lib/support/database'
 
 module RailsRefactor
   module Commands
@@ -13,13 +12,14 @@ module RailsRefactor
       FIND_PRUNE_REGEXP = Regexp.new(/((^\.\/(#{IGNORE_DIRECTORIES.join('|')}))|\.(#{IGNORE_FILE_TYPES.join('|')}))$/)
 
       def initialize(options = {})
-        @scm = options[:scm]
-        @execute = options[:execute]
-        @migrate = options[:migrate]
+        @scm = (options[:scm] == true)
+        @execute = (options[:execute] == true)
+        @migrate = (options[:migrate] == true)
         @db = Support::Database.new
       end
 
-      def run(args)
+      def run(*args)
+        args = args.flatten
         raise "incorrect arguments for rename: #{args}" if args.size != 2
 
         from, to = args

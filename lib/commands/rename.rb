@@ -121,12 +121,18 @@ module RailsRefactor
       end
 
       def rename_columns
-        from_column_name = "#{@from_singular}_id"
-        to_column_name = "#{@to_singular}_id"
+        replaces = {
+          @from_singular => @to_singular,
+        }
+        replace_regexp = Regexp.new("(\\b|_)(#{replaces.keys.join("|")})(\\b|[_A-Z])")
 
         @db.tables.each do |table|
-          if @db.table_columns(table).include?(from_column_name)
-            @migration_builder.rename_column(table, from_column_name, to_column_name)
+          @db.table_columns(table).each do |from_column_name|
+            to_column_name = from_column_name.dup
+            to_column_name.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
+            if to_column_name != from_column_name
+              @migration_builder.rename_column(table, from_column_name, to_column_name)
+            end
           end
         end
       end

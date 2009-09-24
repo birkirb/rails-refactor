@@ -19,6 +19,6 @@ describe RailsRefactor::Support::Database do
 
   it 'should give an array of table names in the database' do
     database = RailsRefactor::Support::Database.new
-    database.tables.should == ['schema_migrations', 'parasites']
+    database.tables.should == ['schema_migrations', 'parasites', 'parasite_infos']
   end
 end

@@ -9,7 +9,14 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090918032004) do
+ActiveRecord::Schema.define(:version => 20090924033729) do
+
+  create_table "parasite_infos", :force => true do |t|
+    t.integer  "parasite_id"
+    t.string   "dwellings"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "parasites", :force => true do |t|
     t.string   "name"

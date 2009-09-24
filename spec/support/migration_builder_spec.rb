@@ -27,6 +27,14 @@ describe RailsRefactor::Support::MigrationBuilder do
     mb.file_name.should == "#{RAILS_ROOT}/db/migrate/#{Time.now.strftime('%Y%m%d%H%M%S')}_cool_migration.rb"
   end
 
+  it 'should not generate conflicting migration file names when generated within short periods of time' do
+    mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
+    file_name_1 = mb.file_name
+    mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
+    file_name_2 = mb.file_name
+    file_name_1.should_not equal(file_name_2)
+  end
+
   it '#to_s should return the migration built' do
     mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
     mb.to_s.should == empty_migration
@@ -54,6 +62,7 @@ describe RailsRefactor::Support::MigrationBuilder do
   end
 
   it 'should save the migration to the rails db/migrate directory' do
+    sleep(1)
     expected_file_Name = "#{RAILS_ROOT}/db/migrate/#{Time.now.strftime('%Y%m%d%H%M%S')}_rename_parasites_to_users.rb"
     mb = RailsRefactor::Support::MigrationBuilder.new('RenameParasitesToUsers')
     File.exists?(expected_file_Name).should be_false

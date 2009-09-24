@@ -9,14 +9,14 @@ module RailsRefactor
       def self.reset_table_rename_memory
         @@rename_map = Hash.new
       end
-
       reset_table_rename_memory
+      @@used_time_stamps = Hash.new(false)
 
       def initialize(migration_name)
         @rails_root = RAILS_ROOT
         @up_commands = Array.new
         @down_commands = Array.new
-        @file_name = File.join(@rails_root, 'db', 'migrate', "#{Time.now.strftime('%Y%m%d%H%M%S')}_#{migration_name.underscore}.rb")
+        @file_name = File.join(@rails_root, 'db', 'migrate', "#{unique_time_stamp}_#{migration_name.underscore}.rb")
         @migration_name = migration_name
       end
 
@@ -58,6 +58,16 @@ class #{@migration_name} < ActiveRecord::Migration
   end
 end
         MIGRATION
+      end
+
+      def unique_time_stamp
+        suggested = Time.now.strftime('%Y%m%d%H%M%S')
+        while @@used_time_stamps[suggested]
+          suggested = Time.now.strftime('%Y%m%d%H%M%S')
+          sleep(1)
+        end
+        @@used_time_stamps[suggested] = true
+        suggested
       end
 
       def table_name(value)

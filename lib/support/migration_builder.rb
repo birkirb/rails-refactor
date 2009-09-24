@@ -4,9 +4,13 @@ module RailsRefactor
   module Support
     class MigrationBuilder
 
-      @@rename_map = Hash.new
-
       attr_accessor :file_name
+
+      def self.reset_table_rename_memory
+        @@rename_map = Hash.new
+      end
+
+      reset_table_rename_memory
 
       def initialize(migration_name)
         @rails_root = RAILS_ROOT

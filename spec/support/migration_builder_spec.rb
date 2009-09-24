@@ -14,6 +14,10 @@ EMPTY_MIGRATION
 
 describe RailsRefactor::Support::MigrationBuilder do
 
+  before(:all) do
+    RailsRefactor::Support::MigrationBuilder.reset_table_rename_memory
+  end
+
   it 'should initialize with a migration_name' do
     RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
   end
@@ -28,6 +32,13 @@ describe RailsRefactor::Support::MigrationBuilder do
     mb.to_s.should == empty_migration
   end
 
+  it 'should generate rename column migrations when so called' do
+    mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
+    mb.rename_column('parasites', 'name', 'classification')
+    mb.to_s.should match(/def self.up\n\s+rename_column\(:parasites, :name, :classification\)\n/)
+    mb.to_s.should match(/def self.down\n\s+rename_column\(:parasites, :classification, :name\)\n/)
+  end
+
   it 'should generate rename table migrations when so called' do
     mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
     mb.rename_table('parasites', 'users')
@@ -35,11 +46,11 @@ describe RailsRefactor::Support::MigrationBuilder do
     mb.to_s.should match(/def self.down\n\s+rename_table\(:users, :parasites\)\n/)
   end
 
-  it 'should generate rename column migrations when so called' do
+  it 'should remember the previous table rename and generate rename column migrations with the new name' do
     mb = RailsRefactor::Support::MigrationBuilder.new('CoolMigration')
     mb.rename_column('parasites', 'name', 'classification')
-    mb.to_s.should match(/def self.up\n\s+rename_column\(:parasites, :name, :classification\)\n/)
-    mb.to_s.should match(/def self.down\n\s+rename_column\(:parasites, :classification, :name\)\n/)
+    mb.to_s.should match(/def self.up\n\s+rename_column\(:users, :name, :classification\)\n/)
+    mb.to_s.should match(/def self.down\n\s+rename_column\(:users, :classification, :name\)\n/)
   end
 
   it 'should save the migration to the rails db/migrate directory' do

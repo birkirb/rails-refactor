@@ -1,8 +1,6 @@
 require 'find'
 require 'rubygems'
 require 'active_support'
-require 'support/migration_builder'
-require 'support/database'
 
 module RailsRefactor
   module Commands
@@ -16,7 +14,7 @@ module RailsRefactor
         @scm = options[:scm]
         @execute = (options[:execute] == true)
         @migrate = (options[:migrate] == true)
-        @db = Support::Database.new
+        load_database_support if @migrate
       end
 
       def run(*args)
@@ -96,6 +94,12 @@ module RailsRefactor
           end
           puts
         end
+      end
+
+      def load_database_support
+        require 'support/migration_builder'
+        require 'support/database'
+        @db = Support::Database.new
       end
 
       def build_migration

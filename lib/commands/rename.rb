@@ -37,15 +37,18 @@ module RailsRefactor
 
       def rename_files
         renames = {
-          "test/unit/#{@from_singular}_test.rb" => "test/unit/#{@to_singular}_test.rb",
-          "test/functional/#{@from_plural}_controller_test.rb" => "test/functional/#{@to_plural}_controller_test.rb",
-          "test/fixtures/#{@from_plural}.yml" => "test/fixtures/#{@to_plural}.yml",
           "app/models/#{@from_singular}.rb" => "app/models/#{@to_singular}.rb",
           "app/models/#{@from_singular}_sweeper.rb" => "app/models/#{@to_singular}_sweeper.rb",
+          "test/unit/#{@from_singular}_test.rb" => "test/unit/#{@to_singular}_test.rb",
+          "test/unit/#{@from_singular}_sweeper_test.rb" => "test/unit/#{@to_singular}_sweeper_test.rb",
+          "test/fixtures/#{@from_plural}.yml" => "test/fixtures/#{@to_plural}.yml",
           "app/helpers/#{@from_singular}_helper.rb" => "app/helpers/#{@to_singular}_helper.rb",
           "app/helpers/#{@from_plural}_helper.rb" => "app/helpers/#{@to_plural}_helper.rb",
           "app/controllers/#{@from_singular}_controller.rb" => "app/controllers/#{@to_singular}_controller.rb",
           "app/controllers/#{@from_plural}_controller.rb" => "app/controllers/#{@to_plural}_controller.rb",
+          "test/functional/#{@from_singular}_controller_test.rb" => "test/functional/#{@to_singular}_controller_test.rb",
+          "test/functional/#{@from_plural}_controller_test.rb" => "test/functional/#{@to_plural}_controller_test.rb",
+          "app/views/#{@from_singular}" => "app/views/#{@to_singular}",
           "app/views/#{@from_plural}" => "app/views/#{@to_plural}",
         }
 

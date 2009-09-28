@@ -72,11 +72,10 @@ module RailsRefactor
         do_with_found_files do |from_path|
           if @rails_renames[from_path].nil? && match = (from_path =~ replace_regexp)
             to_path = from_path.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
-            ask = "Do you want move `#{from_path}` => `#{to_path}`? [yes/NO] "
             responded = false
             while !responded
-              print ask
               if @execute
+                print "Do you want move `#{from_path}` => `#{to_path}`? [yes/NO] "
                 response = STDIN.readline
                 response.chomp!
                 if 'yes' == response.downcase
@@ -88,6 +87,7 @@ module RailsRefactor
                   puts "Please answer 'yes' or 'no'.\n"
                 end
               else
+                puts "move? #{from_path} #{to_path}"
                 responded = true
               end
             end

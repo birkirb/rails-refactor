@@ -27,7 +27,24 @@ module RailsRefactor
         @to_singular = to.singularize
         @to_plural = to.pluralize
 
+        @rails_renames = {
+          "./app/models/#{@from_singular}.rb"                      => "./app/models/#{@to_singular}.rb",
+          "./app/models/#{@from_singular}_sweeper.rb"              => "./app/models/#{@to_singular}_sweeper.rb",
+          "./test/unit/#{@from_singular}_test.rb"                  => "./test/unit/#{@to_singular}_test.rb",
+          "./test/unit/#{@from_singular}_sweeper_test.rb"          => "./test/unit/#{@to_singular}_sweeper_test.rb",
+          "./test/fixtures/#{@from_plural}.yml"                    => "./test/fixtures/#{@to_plural}.yml",
+          "./app/helpers/#{@from_singular}_helper.rb"              => "./app/helpers/#{@to_singular}_helper.rb",
+          "./app/helpers/#{@from_plural}_helper.rb"                => "./app/helpers/#{@to_plural}_helper.rb",
+          "./app/controllers/#{@from_singular}_controller.rb"      => "./app/controllers/#{@to_singular}_controller.rb",
+          "./app/controllers/#{@from_plural}_controller.rb"        => "./app/controllers/#{@to_plural}_controller.rb",
+          "./test/functional/#{@from_singular}_controller_test.rb" => "./test/functional/#{@to_singular}_controller_test.rb",
+          "./test/functional/#{@from_plural}_controller_test.rb"   => "./test/functional/#{@to_plural}_controller_test.rb",
+          "./app/views/#{@from_singular}"                          => "./app/views/#{@to_singular}",
+          "./app/views/#{@from_plural}"                            => "./app/views/#{@to_plural}",
+        }
+
         rename_files
+        rename_ambiguous_files
         rename_constants_and_variables
 
         build_migration if @migrate
@@ -36,32 +53,53 @@ module RailsRefactor
       private
 
       def rename_files
-        renames = {
-          "app/models/#{@from_singular}.rb" => "app/models/#{@to_singular}.rb",
-          "app/models/#{@from_singular}_sweeper.rb" => "app/models/#{@to_singular}_sweeper.rb",
-          "test/unit/#{@from_singular}_test.rb" => "test/unit/#{@to_singular}_test.rb",
-          "test/unit/#{@from_singular}_sweeper_test.rb" => "test/unit/#{@to_singular}_sweeper_test.rb",
-          "test/fixtures/#{@from_plural}.yml" => "test/fixtures/#{@to_plural}.yml",
-          "app/helpers/#{@from_singular}_helper.rb" => "app/helpers/#{@to_singular}_helper.rb",
-          "app/helpers/#{@from_plural}_helper.rb" => "app/helpers/#{@to_plural}_helper.rb",
-          "app/controllers/#{@from_singular}_controller.rb" => "app/controllers/#{@to_singular}_controller.rb",
-          "app/controllers/#{@from_plural}_controller.rb" => "app/controllers/#{@to_plural}_controller.rb",
-          "test/functional/#{@from_singular}_controller_test.rb" => "test/functional/#{@to_singular}_controller_test.rb",
-          "test/functional/#{@from_plural}_controller_test.rb" => "test/functional/#{@to_plural}_controller_test.rb",
-          "app/views/#{@from_singular}" => "app/views/#{@to_singular}",
-          "app/views/#{@from_plural}" => "app/views/#{@to_plural}",
-        }
-
         puts "Renaming files and directories:" unless @execute
 
-        renames.each do |from, to|
+        @rails_renames.each do |from, to|
           if File.exist?(from)
-            if @execute
-              @scm.move(from,to)
-            else
-              puts "  will rename #{from} -> #{to}"
+            move_file(from, to)
+          end
+        end
+      end
+
+      def rename_ambiguous_files
+        replaces = {
+          @from_singular => @to_singular,
+          @from_plural => @to_plural,
+        }
+        replace_regexp = matching_regexp(replaces.keys)
+
+        do_with_found_files do |from_path|
+          if @rails_renames[from_path].nil? && match = (from_path =~ replace_regexp)
+            to_path = from_path.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
+            ask = "Do you want move `#{from_path}` => `#{to_path}`? [yes/NO] "
+            responded = false
+            while !responded
+              puts ask
+              if @execute
+                response = STDIN.readline
+                response.chomp!
+                if 'yes' == response.downcase
+                  @scm.move(from_path, to_path)
+                  responded = true
+                elsif 'no' == response.downcase || '' == response
+                  responded = true
+                else
+                  puts "Please answer 'yes' or 'no'.\n"
+                end
+              else
+                responded = true
+              end
             end
           end
+        end
+      end
+
+      def move_file(from, to)
+        if @execute
+          @scm.move(from,to)
+        else
+          puts "  will rename #{from} -> #{to}"
         end
       end
 
@@ -72,10 +110,10 @@ module RailsRefactor
           @from_singular.classify => @to_singular.classify,
           @from_plural.classify => @to_plural.classify,
         }
-        replace_regexp = Regexp.new("(\\b|_)(#{replaces.keys.join("|")})(\\b|[_A-Z])")
+        replace_regexp = matching_regexp(replaces.keys)
 
         if @execute
-          do_with_found_files do |content, path|
+          do_with_found_files_content do |content, path|
             content.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
           end
         else
@@ -85,7 +123,7 @@ module RailsRefactor
           end
           puts "  -- listing matches for this regular expression: #{replace_regexp.to_s}"
 
-          do_with_found_files do |content, path|
+          do_with_found_files_content do |content, path|
             content.each_with_index do |line, idx|
               line.strip!
               line.scan(replace_regexp).each do
@@ -131,7 +169,7 @@ module RailsRefactor
         replaces = {
           @from_singular => @to_singular,
         }
-        replace_regexp = Regexp.new("(\\b|_)(#{replaces.keys.join("|")})(\\b|[_A-Z])")
+        replace_regexp = matching_regexp(replaces.keys)
 
         @db.tables.each do |table|
           @db.table_columns(table).each do |from_column_name|
@@ -149,16 +187,26 @@ module RailsRefactor
           if path =~ FIND_PRUNE_REGEXP
             Find.prune
           else
-            if File.file?(path)
-              content = File.read(path)
-              if replaced = yield(content, path)
-                open(path, "w") do |out|
+            yield(path)
+          end
+        end
+      end
+
+      def do_with_found_files_content
+        do_with_found_files do |path|
+          if File.file?(path)
+            content = File.read(path)
+            if replaced = yield(content, path)
+              open(path, "w") do |out|
                 out.print content
               end
             end
-            end
           end
         end
+      end
+
+      def matching_regexp(keys)
+        Regexp.new("(\\b|_)(#{keys.join("|")})(\\b|[_A-Z])")
       end
 
       def remove_namespace_seperator(value)

@@ -75,7 +75,7 @@ module RailsRefactor
             ask = "Do you want move `#{from_path}` => `#{to_path}`? [yes/NO] "
             responded = false
             while !responded
-              puts ask
+              print ask
               if @execute
                 response = STDIN.readline
                 response.chomp!

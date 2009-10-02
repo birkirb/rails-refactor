@@ -64,7 +64,7 @@ module RailsRefactor
                 response = STDIN.readline
                 response.chomp!
                 if 'yes' == response.downcase
-                  move(from_path, to_path)
+                  move_file(from_path, to_path)
                   responded = true
                 elsif 'no' == response.downcase || '' == response
                   responded = true

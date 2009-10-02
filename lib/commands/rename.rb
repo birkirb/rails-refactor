@@ -52,7 +52,6 @@ module RailsRefactor
           @from_plural => @to_plural,
         }
         replace_regexp = matching_regexp(replaces.keys)
-        replace_regexp = matching_regexp(replaces.keys)
         rails_renamed = Hash.new
         rails_renames.each { |key, value| rails_renamed[value] = true }
 

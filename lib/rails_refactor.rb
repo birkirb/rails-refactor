@@ -8,15 +8,19 @@ begin
     opts.version = "(version 0.1)"
     opts.banner = "Usage: #{opts.program_name} [OPTIONS] [COMMANDS]"
     opts.separator ""
-    opts.separator "COMMANDS:"
-    opts.separator "  rename [old_class_name] [new_class_name]"
-    opts.separator ""
     opts.separator "OPTIONS:"
     opts.on("-x", "--[no-]execute", "Execute supplied commands. Must be supplied to run otherwise it will just show what would have been done.") { |b| options[:execute] = b }
     opts.on("-h", "--help", "This help message.") { |b| options[:help] = b }
     opts.on("-s", "--[no-]use-scm", "Use SCM support.") { |b| options[:scm] = b }
     opts.on("-m", "--[no-]migrations", "Generate migrations.") { |b| options[:migrate] = b }
     opts.on("-f", "--command-file COMMAND_FILE", "Read commands from file.") { |file| options[:file] = file }
+    opts.separator ""
+    opts.separator "COMMANDS:"
+    opts.separator "  rename [RENAME_OPTIONS} [old_class_name] [new_class_name]"
+    opts.separator ""
+    opts.separator "RENAME_OPTIONS:"
+    opts.on("-e", "--exclude REGEXP", "Don't rename strings that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
+    opts.separator ""
     opts.separator ""
     opts.separator "Examples:"
     opts.separator "  #{opts.program_name} rename parasite user"

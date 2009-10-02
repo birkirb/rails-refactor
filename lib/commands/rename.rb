@@ -15,6 +15,7 @@ module RailsRefactor
         @execute = (options[:execute] == true)
         @migrate = (options[:migrate] == true)
         load_database_support if @migrate
+        set_exclusion_pattern(options[:exclude])
       end
 
       def run(*args)
@@ -56,25 +57,27 @@ module RailsRefactor
         rails_renames.each { |key, value| rails_renamed[value] = true }
 
         do_with_found_files do |from_path|
-          if match = (from_path =~ replace_regexp) && rails_renamed[from_path].nil?
-            to_path = from_path.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
-            responded = false
-            while !responded
-              if @execute
-                print "Do you want move `#{from_path}` => `#{to_path}`? [yes/NO] "
-                response = STDIN.readline
-                response.chomp!
-                if 'yes' == response.downcase
-                  move_file(from_path, to_path)
-                  responded = true
-                elsif 'no' == response.downcase || '' == response
-                  responded = true
+          skipping_exclusion_matches(from_path) do
+            if match = (from_path =~ replace_regexp) && rails_renamed[from_path].nil?
+              to_path = from_path.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
+              responded = false
+              while !responded
+                if @execute
+                  print "Do you want move `#{from_path}` => `#{to_path}`? [yes/NO] "
+                  response = STDIN.readline
+                  response.chomp!
+                  if 'yes' == response.downcase
+                    move_file(from_path, to_path)
+                    responded = true
+                  elsif 'no' == response.downcase || '' == response
+                    responded = true
+                  else
+                    puts "Please answer 'yes' or 'no'.\n"
+                  end
                 else
-                  puts "Please answer 'yes' or 'no'.\n"
+                  puts "move? \"#{from_path}\" \"#{to_path}\""
+                  responded = true
                 end
-              else
-                puts "move? \"#{from_path}\" \"#{to_path}\""
-                responded = true
               end
             end
           end
@@ -100,7 +103,11 @@ module RailsRefactor
 
         if @execute
           do_with_found_files_content do |content, path|
-            content.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
+            content.each_with_index do |line, idx|
+              skipping_exclusion_matches(line) do
+                line.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
+              end
+            end
           end
         else
           puts "Will replacing the following constants and variables:"
@@ -111,10 +118,12 @@ module RailsRefactor
 
           do_with_found_files_content do |content, path|
             content.each_with_index do |line, idx|
-              line.strip!
-              line.scan(replace_regexp).each do
-                puts "  #{path}:#{idx+1}: #{line} "
-                puts "    -> #{line.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}}"
+              skipping_exclusion_matches(line) do
+                line.strip!
+                line.scan(replace_regexp).each do
+                  puts "  #{path}:#{idx+1}: #{line} "
+                  puts "    -> #{line.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}}"
+                end
               end
             end
             false
@@ -161,8 +170,10 @@ module RailsRefactor
           @db.table_columns(table).each do |from_column_name|
             to_column_name = from_column_name.dup
             to_column_name.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
-            if to_column_name != from_column_name
-              @migration_builder.rename_column(table, from_column_name, to_column_name)
+            skipping_exclusion_matches(from_column_name) do
+              if to_column_name != from_column_name
+                @migration_builder.rename_column(table, from_column_name, to_column_name)
+              end
             end
           end
         end
@@ -197,6 +208,39 @@ module RailsRefactor
 
       def remove_namespace_seperator(value)
         value.sub('::', '')
+      end
+
+      def set_exclusion_pattern(pattern)
+        if pattern.blank?
+          @exclude = nil
+        else
+          begin
+            @exclude = Regexp.new(pattern)
+          rescue => err
+            puts err.message
+            @exclude = nil
+          end
+        end
+      end
+
+      def skipping_exclusion_matches(string, &block)
+        if exclusion_match?(string)
+          # do nothing
+        else
+          yield(string)
+        end
+      end
+
+      def exclusion_match?(string)
+        if @exclude.nil?
+          false
+        else
+          if string =~ @exclude
+            true
+          else
+            false
+          end
+        end
       end
 
       def rails_renames

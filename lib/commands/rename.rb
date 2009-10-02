@@ -52,10 +52,12 @@ module RailsRefactor
           @from_plural => @to_plural,
         }
         replace_regexp = matching_regexp(replaces.keys)
-        rails_renamed = rails_renames
+        replace_regexp = matching_regexp(replaces.keys)
+        rails_renamed = Hash.new
+        rails_renames.each { |key, value| rails_renamed[value] = true }
 
         do_with_found_files do |from_path|
-          if rails_renamed[from_path].nil? && match = (from_path =~ replace_regexp)
+          if match = (from_path =~ replace_regexp) && rails_renamed[from_path].nil?
             to_path = from_path.gsub(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
             responded = false
             while !responded

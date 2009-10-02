@@ -107,8 +107,8 @@ module RailsRefactor
             content.each_with_index do |line, idx|
               skipping_exclusion_matches(line) do
                 line.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}
-                new_content << line
               end
+              new_content << line
             end
             content = new_content
           end

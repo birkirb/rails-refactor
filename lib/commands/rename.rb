@@ -198,7 +198,7 @@ module RailsRefactor
             content = File.read(path)
             if replaced = yield(content, path)
               open(path, "w") do |out|
-                out.print content
+                out.print replaced
               end
             end
           end

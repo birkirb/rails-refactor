@@ -102,8 +102,8 @@ module RailsRefactor
         replace_regexp = matching_regexp(replaces.keys)
 
         if @execute
-          new_content = ''
           do_with_found_files_content do |content, path|
+            new_content = ''
             content.each_with_index do |line, idx|
               skipping_exclusion_matches(line) do
                 line.gsub!(replace_regexp) {"#{$1}#{replaces[$2]}#{$3}"}

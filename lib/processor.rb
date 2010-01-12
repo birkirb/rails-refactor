@@ -1,4 +1,5 @@
 require 'commands/rename'
+require 'commands/find'
 require 'scm/abstract'
 require 'scm/file'
 require 'scm/git'
@@ -7,8 +8,10 @@ require 'scm/svn'
 module RailsRefactor
   class Processor
 
+    # TODO: Load this dynamically
     COMMANDS = {
-      :rename => RailsRefactor::Commands::Rename
+      :rename => RailsRefactor::Commands::Rename,
+      :find => RailsRefactor::Commands::Find
     }
 
     def initialize(options)

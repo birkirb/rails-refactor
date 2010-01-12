@@ -37,10 +37,10 @@ module RailsRefactor
         ]
         find_regexp = matching_regexp(finds)
 
-        do_with_found_files_content do |content, path|
-          content.each_with_index do |line, idx|
+        do_with_found_files_content do |file, path|
+          file.each_line do |line|
             if match = line.match(find_regexp)
-              puts "#{path}:#{idx+1}: #{line}"
+              puts "#{path}:#{file.lineno}: #{line}"
             end
           end
         end
@@ -88,8 +88,8 @@ module RailsRefactor
       def do_with_found_files_content
         do_with_found_files do |path|
           if File.file?(path)
-            content = File.read(path)
-            yield(content, path)
+            file = File.open(path)
+            yield(file, path)
           end
         end
       end

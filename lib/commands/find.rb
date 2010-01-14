@@ -1,10 +1,6 @@
-require 'find'
-require 'rubygems'
-require 'active_support'
-
 module RailsRefactor
   module Commands
-    class Find
+    class Find < Base
 
       IGNORE_DIRECTORIES = ['log', 'tmp']
       IGNORE_FILE_TYPES =  ['bin', 'git', 'svn', 'sh', 'swp', 'sql', 'rake', 'swf']
@@ -12,6 +8,15 @@ module RailsRefactor
 
       def initialize(options = {})
         set_exclusion_pattern(options[:exclude])
+      end
+
+      def self.help
+        "find\t[FIND_OPTIONS] [string]"
+      end
+
+      def self.help_options(options)
+        options.separator "FIND_OPTIONS:"
+        options.on("-e", "--exclude REGEXP", "Don't report strings in files that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
       end
 
       def run(*args)

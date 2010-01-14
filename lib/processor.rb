@@ -1,5 +1,7 @@
-require 'commands/rename'
-require 'commands/find'
+require 'find'
+require 'rubygems'
+require 'active_support'
+require 'commands/base'
 require 'scm/abstract'
 require 'scm/file'
 require 'scm/git'
@@ -8,16 +10,10 @@ require 'scm/svn'
 module RailsRefactor
   class Processor
 
-    # TODO: Load this dynamically
-    COMMANDS = {
-      :rename => RailsRefactor::Commands::Rename,
-      :find => RailsRefactor::Commands::Find
-    }
-
-    def initialize(options)
-      @options = options
-      @options[:scm] = set_scm(options[:scm])
+    def initialize(option_parser)
+      @option_parser = option_parser
       reset
+      load_commands
     end
 
     def file_commands(file)
@@ -26,22 +22,48 @@ module RailsRefactor
       end
     end
 
-    def command_line(args)
+    def command_line(args, options)
       args.each do |arg|
-        if klass = COMMANDS[arg.to_sym]
+        if klass = @commands[arg.to_sym]
           execute if @command_klass
           @command_klass = klass
         else
           @command_args << arg
         end
       end
-      execute
+      execute(options)
     end
 
     private
 
-    def execute
-      command = @command_klass.new(@options)
+    def load_commands
+      require_commands
+      @commands = self.class.commands_in_object_space
+      @commands.each do |name, klass|
+        @option_parser.separator(klass.help)
+      end
+    end
+
+    def self.commands_in_object_space
+      commands = Hash.new
+      ::ObjectSpace.each_object(Class) do |klass|
+        if(RailsRefactor::Commands::Base > klass)
+          commands[klass.name.gsub(/.*\:\:/, '').underscore.to_sym] = klass
+        end
+      end
+      commands
+    end
+
+    def require_commands
+      Find.find(File.join(File.dirname(__FILE__), 'commands')) do |path|
+        if File.file?(path) && path.match(/\.rb$/)
+          require path
+        end
+      end
+    end
+
+    def execute(options)
+      command = @command_klass.new(options)
       command.run(@command_args)
       reset
     end
@@ -49,21 +71,6 @@ module RailsRefactor
     def reset
       @command_klass = nil
       @command_args = Array.new
-    end
-
-    def set_scm(scm)
-      if scm
-        case
-        when File.directory?(".git")
-          SCM::Git.new
-        when File.directory?(".svn")
-          SCM::SVN.new
-        else
-          SCM::File.new
-        end
-      else
-        SCM::File.new
-      end
     end
 
   end

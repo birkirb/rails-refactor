@@ -1,21 +1,30 @@
-require 'find'
-require 'rubygems'
-require 'active_support'
-
 module RailsRefactor
   module Commands
-    class Rename
+    class Rename < Base
 
       IGNORE_DIRECTORIES = ['vendor', 'log', 'tmp', 'db']
       IGNORE_FILE_TYPES =  ['bin', 'git', 'svn', 'sh', 'swp', 'sql', 'rake', 'swf']
       FIND_PRUNE_REGEXP = Regexp.new(/((^\.\/(#{IGNORE_DIRECTORIES.join('|')}))|\.(#{IGNORE_FILE_TYPES.join('|')}))$/)
 
       def initialize(options = {})
-        @scm = options[:scm]
+        @scm = set_scm(options[:scm])
         @execute = (options[:execute] == true)
         @migrate = (options[:migrate] == true)
         load_database_support if @migrate
         set_exclusion_pattern(options[:exclude])
+      end
+
+      def self.help
+        "rename\t[RENAME_OPTIONS] [old_class_name] [new_class_name]"
+      end
+
+      def self.help_options(options)
+        options.on("-x", "--[no-]execute", "Execute rename. Must be supplied to run otherwise it will just show what would have been done.") { |b| options[:execute] = b }
+        options.on("-m", "--[no-]migrations", "Generate migrations.") { |b| options[:migrate] = b }
+        options.on("-e", "--exclude REGEXP", "Don't rename strings that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
+        options.separator ""
+        options.separator "Examples:"
+        options.separator "  #{opts.program_name} rename parasite user"
       end
 
       def run(*args)
@@ -262,6 +271,21 @@ module RailsRefactor
           "./app/views/#{@from_singular}"                          => "./app/views/#{@to_singular}",
           "./app/views/#{@from_plural}"                            => "./app/views/#{@to_plural}",
         }
+      end
+
+      def set_scm(scm)
+        if scm
+          case
+          when File.directory?(".git")
+            SCM::Git.new
+          when File.directory?(".svn")
+            SCM::SVN.new
+          else
+            SCM::File.new
+          end
+        else
+          SCM::File.new
+        end
       end
 
     end

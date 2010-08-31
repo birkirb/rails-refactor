@@ -5,6 +5,7 @@ require 'spec'
 ::RAILS_REFACTOR_ROOT = FileUtils.pwd
 $LOAD_PATH << File.join(RAILS_REFACTOR_ROOT, 'lib')
 
+require 'processor'
 require 'commands/rename'
 require 'support/database'
 require 'support/migration_builder'

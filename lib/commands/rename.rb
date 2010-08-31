@@ -192,9 +192,9 @@ module RailsRefactor
       end
 
       def do_with_found_files
-        Find.find(".") do |path|
+        ::Find.find(".") do |path|
           if path =~ FIND_PRUNE_REGEXP
-            Find.prune
+            ::Find.prune
           else
             yield(path)
           end

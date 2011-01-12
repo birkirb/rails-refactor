@@ -14,9 +14,6 @@ A plugin to assist in refactoring your rails application.
 
 Usage: script/refactor [OPTIONS] [COMMANDS]
 
-COMMANDS:
-  rename [old_class_name] [new_class_name]
-
 OPTIONS:
     -x, --[no-]execute               Execute supplied commands. Must be supplied to run otherwise it will just show what would have been done.
     -h, --help                       This help message.
@@ -24,7 +21,18 @@ OPTIONS:
     -m, --[no-]migrations            Generate migrations.
     -f, --command-file COMMAND_FILE  Read commands from file.
 
-Examples:
+COMMANDS:
+  find   [FIND_OPTIONS]   [string]
+  rename [RENAME_OPTIONS] [old_class_name] [new_class_name]
+
+FIND_OPTIONS:
+        --find-exclude REGEXP        Don't report strings in files that match this exlusion pattern.
+
+RENAME_OPTIONS:
+        --rename-exclude REGEXP      Don't rename strings that match this exlusion pattern.
+        --[no-]rails-inflections     Use rails inflections for class and variable names. (default)
+
+RENAME EXAMPLE:
   script/refactor rename parasite user
 
 == Attribution

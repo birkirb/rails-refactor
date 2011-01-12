@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'spec'
+require 'fileutils'
 
 ::RAILS_ROOT = File.join(File.dirname(__FILE__), 'test_app')
 ::RAILS_REFACTOR_ROOT = FileUtils.pwd

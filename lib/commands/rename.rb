@@ -1,30 +1,30 @@
+require 'find'
+require 'rubygems'
+require 'active_support'
+
 module RailsRefactor
   module Commands
-    class Rename < Base
+    class Rename
 
       IGNORE_DIRECTORIES = ['vendor', 'log', 'tmp', 'db']
       IGNORE_FILE_TYPES =  ['bin', 'git', 'svn', 'sh', 'swp', 'sql', 'rake', 'swf']
       FIND_PRUNE_REGEXP = Regexp.new(/((^\.\/(#{IGNORE_DIRECTORIES.join('|')}))|\.(#{IGNORE_FILE_TYPES.join('|')}))$/)
 
       def initialize(options = {})
-        @scm = set_scm(options[:scm])
         @execute = (options[:execute] == true)
-        @migrate = (options[:migrate] == true)
+
+        if options[:use_rails_inflections] == true
+          @rails_inflections = true
+          @migrate = false
+          @scm = SCM::Abstract.new
+        else
+          @rails_inflections = false
+          @migrate = (options[:migrate] == true)
+          @scm = options[:scm]
+        end
+
         load_database_support if @migrate
         set_exclusion_pattern(options[:exclude])
-      end
-
-      def self.help
-        "rename\t[RENAME_OPTIONS] [old_class_name] [new_class_name]"
-      end
-
-      def self.help_options(options)
-        options.on("-x", "--[no-]execute", "Execute rename. Must be supplied to run otherwise it will just show what would have been done.") { |b| options[:execute] = b }
-        options.on("-m", "--[no-]migrations", "Generate migrations.") { |b| options[:migrate] = b }
-        options.on("-e", "--exclude REGEXP", "Don't rename strings that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
-        options.separator ""
-        options.separator "Examples:"
-        options.separator "  #{opts.program_name} rename parasite user"
       end
 
       def run(*args)
@@ -32,13 +32,18 @@ module RailsRefactor
         raise "incorrect arguments for rename: #{args}" if args.size != 2
 
         from, to = args
+        @from = from
         @from_singular = from.singularize
         @from_plural = from.pluralize
+        @to = to
         @to_singular = to.singularize
         @to_plural = to.pluralize
 
-        rename_files
-        rename_files_verbose
+        if @rails_inflections
+          rename_files
+          rename_files_verbose
+        end
+
         rename_constants_and_variables
 
         build_migration if @migrate
@@ -61,6 +66,7 @@ module RailsRefactor
           @from_singular => @to_singular,
           @from_plural => @to_plural,
         }
+
         replace_regexp = matching_regexp(replaces.keys)
         rails_renamed = Hash.new
         rails_renames.each { |key, value| rails_renamed[value] = true }
@@ -102,12 +108,19 @@ module RailsRefactor
       end
 
       def rename_constants_and_variables
-        replaces = {
-          @from_singular => @to_singular,
-          @from_plural => @to_plural,
-          @from_singular.classify => @to_singular.classify,
-          @from_plural.classify => @to_plural.classify,
-        }
+        if @rails_inflections
+          replaces = {
+            @from_singular => @to_singular,
+            @from_plural => @to_plural,
+            @from_singular.classify => @to_singular.classify,
+            @from_plural.classify => @to_plural.classify,
+          }
+        else
+          replaces = {
+            @from => @to,
+          }
+        end
+
         replace_regexp = matching_regexp(replaces.keys)
 
         if @execute
@@ -192,9 +205,9 @@ module RailsRefactor
       end
 
       def do_with_found_files
-        Find.find(".") do |path|
+        ::Find.find(".") do |path|
           if path =~ FIND_PRUNE_REGEXP
-            Find.prune
+            ::Find.prune
           else
             yield(path)
           end
@@ -271,21 +284,6 @@ module RailsRefactor
           "./app/views/#{@from_singular}"                          => "./app/views/#{@to_singular}",
           "./app/views/#{@from_plural}"                            => "./app/views/#{@to_plural}",
         }
-      end
-
-      def set_scm(scm)
-        if scm
-          case
-          when File.directory?(".git")
-            SCM::Git.new
-          when File.directory?(".svn")
-            SCM::SVN.new
-          else
-            SCM::File.new
-          end
-        else
-          SCM::File.new
-        end
       end
 
     end

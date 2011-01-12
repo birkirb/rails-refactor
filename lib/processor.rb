@@ -10,8 +10,9 @@ require 'scm/svn'
 module RailsRefactor
   class Processor
 
-    def initialize(option_parser)
+    def initialize(option_parser, defaults = {})
       @option_parser = option_parser
+      @option_defaults = defaults
       reset
       load_commands
     end
@@ -41,6 +42,10 @@ module RailsRefactor
       @commands = self.class.commands_in_object_space
       @commands.each do |name, klass|
         @option_parser.separator(klass.help)
+      end
+      @commands.each do |name, klass|
+        klass.help_option_defaults(@option_defaults)
+        klass.help_options(@option_parser, @option_defaults)
       end
     end
 

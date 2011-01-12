@@ -11,12 +11,13 @@ module RailsRefactor
       end
 
       def self.help
-        "find\t[FIND_OPTIONS] [string]"
+        "  find   [FIND_OPTIONS]   [string]"
       end
 
-      def self.help_options(options)
-        options.separator "FIND_OPTIONS:"
-        options.on("-e", "--exclude REGEXP", "Don't report strings in files that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
+      def self.help_options(option_parser, options)
+        option_parser.separator ""
+        option_parser.separator "FIND_OPTIONS:"
+        option_parser.on("--find-exclude REGEXP", "Don't report strings in files that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
       end
 
       def run(*args)

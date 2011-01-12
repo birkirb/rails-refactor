@@ -2,7 +2,7 @@ require 'optparse'
 require 'processor'
 
 begin
-  options = {:scm => true, :migrate => false, :execute => false, :use_rails_inflections => true}
+  options = {:scm => true, :migrate => false, :execute => false}
   option_parser = OptionParser.new do |opts|
     opts.program_name = "script/refactor"
     opts.version = "(version 0.1)"
@@ -16,29 +16,20 @@ begin
     opts.on("-f", "--command-file COMMAND_FILE", "Read commands from file.") { |file| options[:file] = file }
     opts.separator ""
     opts.separator "COMMANDS:"
-    opts.separator "  rename [RENAME_OPTIONS} [old_class_name] [new_class_name]"
-    opts.separator ""
-    opts.separator "RENAME_OPTIONS:"
-    opts.on("-e", "--exclude REGEXP", "Don't rename strings that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
-    opts.on("-r", "--[no-]rails-inflections", "Use rails inflections for class and variable names. (default)") { |b| options[:use_rails_inflections] = b }
-    opts.separator ""
-    opts.separator ""
-    opts.separator "Examples:"
-    opts.separator "  #{opts.program_name} rename parasite user"
   end
+  processor = RailsRefactor::Processor.new(option_parser, options)
+
   option_parser.parse!(ARGV)
 
   if options[:help]
     puts option_parser
   else
-    processor = RailsRefactor::Processor.new(options)
-
     if file = options[:file]
       processor.file_commands(file)
     end
 
     if option_parser.default_argv.size > 0
-      processor.command_line(option_parser.default_argv)
+      processor.command_line(option_parser.default_argv, options)
     end
   end
 rescue => err

@@ -4,7 +4,7 @@ require 'active_support'
 
 module RailsRefactor
   module Commands
-    class Rename
+    class Rename < Base
 
       IGNORE_DIRECTORIES = ['vendor', 'log', 'tmp', 'db']
       IGNORE_FILE_TYPES =  ['bin', 'git', 'svn', 'sh', 'swp', 'sql', 'rake', 'swf']
@@ -25,6 +25,24 @@ module RailsRefactor
 
         load_database_support if @migrate
         set_exclusion_pattern(options[:exclude])
+      end
+
+      def self.help
+        "  rename [RENAME_OPTIONS] [old_class_name] [new_class_name]"
+      end
+
+      def self.help_options(option_parser, options)
+        option_parser.separator ""
+        option_parser.separator "RENAME_OPTIONS:"
+        option_parser.on("--rename-exclude REGEXP", "Don't rename strings that match this exlusion pattern.") { |exclude| options[:exclude] = exclude }
+        option_parser.on("--[no-]rails-inflections", "Use rails inflections for class and variable names. (default)") { |b| options[:use_rails_inflections] = b }
+        option_parser.separator ""
+        option_parser.separator "RENAME EXAMPLE:"
+        option_parser.separator "  #{option_parser.program_name} rename parasite user"
+      end
+
+      def self.help_option_defaults(options)
+        options[:use_rails_inflections] = true
       end
 
       def run(*args)
